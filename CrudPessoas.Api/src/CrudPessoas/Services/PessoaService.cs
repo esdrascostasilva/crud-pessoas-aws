@@ -58,6 +58,10 @@ namespace CrudPessoas.Services
             if (!response.IsSuccessStatusCode)
                 return pessoa;
 
+            //testando o retorno da API
+            var conteudo = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"Conteudo do retorno do ViaCep {conteudo}"); // veja exatamente o que está vindo do ViaCEP
+
             var endereco = JsonSerializer.Deserialize<ViaCepResponse>(
                 await response.Content.ReadAsStringAsync(),
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
