@@ -4,7 +4,7 @@ using CrudPessoas.Models;
 
 namespace CrudPessoas.Repositories
 {
-    class PessoaRepository
+    public class PessoaRepository
     {
         private readonly DynamoDBContext _context;
 
