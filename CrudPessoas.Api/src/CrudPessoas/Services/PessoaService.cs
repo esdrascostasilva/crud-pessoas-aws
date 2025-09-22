@@ -5,7 +5,7 @@ using CrudPessoas.Repositories;
 
 namespace CrudPessoas.Services
 {
-    class PessoaService
+    public class PessoaService
     {
         private readonly PessoaRepository _repo = new();
 
@@ -62,11 +62,11 @@ namespace CrudPessoas.Services
                 await response.Content.ReadAsStringAsync(),
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-            if (endereco != null)
+            if (endereco != null && !string.IsNullOrWhiteSpace(endereco.Logradouro))
             {
                 pessoa.Endereco = $"{endereco.Logradouro} - {endereco.Bairro} - {endereco.Localidade}/{endereco.Uf}";
             }
-
+            
             return pessoa;
         }
 
