@@ -15,12 +15,18 @@ namespace CrudPessoas.Services
 
         public async Task<Pessoa> CreateAsync(Pessoa pessoa)
         {
+            Console.WriteLine($"[CreateAsync] Documento recebido: '{pessoa.Documento}'");
+
             if (!DocumentoValido(pessoa.Documento))
+            {
+                Console.WriteLine("[CreateAsync] Documento inválido detectado");
                 throw new Exception("Documento inválido");
+            }
 
             pessoa = await PreencherEnderecoAsync(pessoa);
 
             await _repo.AddAsync(pessoa);
+            Console.WriteLine("[CreateAsync] Pessoa adicionada com sucesso");
             return pessoa;
         }
 
@@ -53,37 +59,46 @@ namespace CrudPessoas.Services
                 return pessoa;
 
             using var client = new HttpClient();
-            
             var response = await client.GetAsync($"https://viacep.com.br/ws/{pessoa.Cep}/json/");
+
             if (!response.IsSuccessStatusCode)
-                return pessoa;
+                throw new Exception("CEP invalido ou nao encontrado");
 
             //testando o retorno da API
-            var conteudo = await response.Content.ReadAsStringAsync();
-            Console.WriteLine($"Conteudo do retorno do ViaCep {conteudo}"); // veja exatamente o que está vindo do ViaCEP
+            var conteudoViaCep = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"Conteudo do retorno do ViaCep {conteudoViaCep}"); // veja exatamente o que está vindo do ViaCEP
 
             var endereco = JsonSerializer.Deserialize<ViaCepResponse>(
-                await response.Content.ReadAsStringAsync(),
+                conteudoViaCep,
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-            if (endereco != null && !string.IsNullOrWhiteSpace(endereco.Logradouro))
-            {
-                pessoa.Endereco = $"{endereco.Logradouro} - {endereco.Bairro} - {endereco.Localidade}/{endereco.Uf}";
-            }
+            if (endereco == null)
+                throw new Exception("Endereco retornou vazio. Algum problema com o CEP informado");
+
+            if (endereco.Erro)
+                throw new Exception("CEP invalido");
+
+            if (!string.IsNullOrWhiteSpace(endereco.Logradouro))
+                {
+                    pessoa.Endereco = $"{endereco.Logradouro} - {endereco.Bairro} - {endereco.Localidade}/{endereco.Uf}";
+                }
             
             return pessoa;
         }
 
         private bool DocumentoValido(string documento)
         {
+            Console.WriteLine($"[DocumentoValido] Documento: {documento}");
+
             if (string.IsNullOrWhiteSpace(documento))
                 return false;
 
-            documento = Regex.Replace(documento, @"[^\d]", ""); // remove caracteres não numéricos
+            documento = Regex.Replace(documento, @"[^\d]", "");
+            Console.WriteLine($"[DocumentoValido] Documento limpo: {documento}");
 
-            if (documento.Length == 11) // CPF
+            if (documento.Length == 11)
                 return ValidaCPF(documento);
-            else if (documento.Length == 14) // CNPJ
+            else if (documento.Length == 14)
                 return ValidaCNPJ(documento);
 
             return false;
