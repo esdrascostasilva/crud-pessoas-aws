@@ -1,41 +1,36 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: >
-  SAM Template for CrudPessoas.Api (Lambda + API Gateway + DynamoDB)
+Description: 'SAM Template for CrudPessoas.Api (Lambda + API Gateway + DynamoDB)
 
+  '
 Globals:
   Function:
     Timeout: 10
     MemorySize: 512
     Runtime: dotnet8
     Architectures:
-      - x86_64
-
+    - x86_64
 Resources:
-
-  # DynamoDB Table
   PessoasTable:
     Type: AWS::DynamoDB::Table
     Properties:
       TableName: Pessoas
       AttributeDefinitions:
-        - AttributeName: Id
-          AttributeType: S
+      - AttributeName: Id
+        AttributeType: S
       KeySchema:
-        - AttributeName: Id
-          KeyType: HASH
+      - AttributeName: Id
+        KeyType: HASH
       BillingMode: PAY_PER_REQUEST
-
-  # Lambda Function
   CrudPessoasFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: src/CrudPessoas/
-      # Handler: Assembly::Namespace.Classe::Metodo
+      CodeUri: CrudPessoasFunction
       Handler: CrudPessoas::CrudPessoas.Handlers.PessoaHandler::FunctionHandler
       Environment:
         Variables:
-          TABLE_NAME: !Ref PessoasTable
+          TABLE_NAME:
+            Ref: PessoasTable
       Events:
         GetAllPessoas:
           Type: Api
@@ -62,13 +57,16 @@ Resources:
           Properties:
             Path: /pessoas/{id}
             Method: delete
-
+    Metadata:
+      SamResourceId: CrudPessoasFunction
 Outputs:
-
   CrudPessoasApi:
-    Description: "API Gateway endpoint URL for Prod stage for Crud Pessoas Api function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/pessoas"
-
+    Description: API Gateway endpoint URL for Prod stage for Crud Pessoas Api function
+    Value:
+      Fn::Sub: https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/pessoas
   CrudPessoasFunctionArn:
-    Description: "Crud Pessoas Lambda Function ARN"
-    Value: !GetAtt CrudPessoasFunction.Arn
+    Description: Crud Pessoas Lambda Function ARN
+    Value:
+      Fn::GetAtt:
+      - CrudPessoasFunction
+      - Arn
