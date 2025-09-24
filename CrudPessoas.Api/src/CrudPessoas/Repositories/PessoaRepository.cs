@@ -52,7 +52,7 @@ namespace CrudPessoas.Repositories
             var conditions = new List<ScanCondition>();
             var queryConfig = new QueryConfig
             {
-                IndexName = "Documento-index",
+                IndexName = "DocumentoIndex",
                 ConsistentRead = false
             };
 
