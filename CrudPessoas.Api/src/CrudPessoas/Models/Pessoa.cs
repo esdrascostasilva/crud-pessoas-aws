@@ -6,24 +6,24 @@ namespace CrudPessoas.Models
     public class Pessoa
     {
         [DynamoDBHashKey]
-        public string Id { get; set; } = string.Empty;
+        public string Id { get; set; }
 
         [DynamoDBProperty]
-        public string Nome { get; set; } = string.Empty;
+        public string Nome { get; set; }
 
         [DynamoDBProperty]
-        public string Documento { get; set; } = string.Empty;
+        public string Documento { get; set; }
 
         [DynamoDBProperty]
-        public string Cep { get; set; } = string.Empty;
+        public string Cep { get; set; }
 
         [DynamoDBProperty]
-        public string Endereco { get; set; } = string.Empty;
+        public string? Endereco { get; set; }
 
         [DynamoDBProperty]
-        public bool isPessoaFisica { get; set; }
+        public bool PessoaFisica { get; set; }
 
         [DynamoDBProperty]
-        public bool isPessoaJuridica { get; set; }
+        public bool PessoaJuridica { get; set; }
     }
 }
