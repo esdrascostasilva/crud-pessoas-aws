@@ -18,10 +18,19 @@ Resources:
       AttributeDefinitions:
       - AttributeName: Id
         AttributeType: S
+      - AttributeName: Documento
+        AttributeType: S
       KeySchema:
       - AttributeName: Id
         KeyType: HASH
       BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+      - IndexName: DocumentoIndex
+        KeySchema:
+        - AttributeName: Documento
+          KeyType: HASH
+        Projection:
+          ProjectionType: ALL
   CrudPessoasFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -50,7 +59,7 @@ Resources:
         UpdatePessoa:
           Type: Api
           Properties:
-            Path: /pessoas
+            Path: /pessoas/{id}
             Method: put
         DeletePessoa:
           Type: Api
