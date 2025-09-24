@@ -27,6 +27,9 @@ namespace CrudPessoas.Repositories
 
         public async Task AddAsync(Pessoa pessoa)
         {
+            if (string.IsNullOrWhiteSpace(pessoa.Id))
+                pessoa.Id = Guid.NewGuid().ToString();
+                
             await _context.SaveAsync(pessoa);
         }
 
