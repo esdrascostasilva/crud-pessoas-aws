@@ -1,5 +1,6 @@
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
+using Amazon.DynamoDBv2.DocumentModel;
 using CrudPessoas.Models;
 
 namespace CrudPessoas.Repositories
@@ -29,7 +30,7 @@ namespace CrudPessoas.Repositories
         {
             if (string.IsNullOrWhiteSpace(pessoa.Id))
                 pessoa.Id = Guid.NewGuid().ToString();
-                
+
             await _context.SaveAsync(pessoa);
         }
 
@@ -44,6 +45,21 @@ namespace CrudPessoas.Repositories
 
             if (pessoa != null)
                 await _context.DeleteAsync(pessoa);
+        }
+
+        public async Task<Pessoa?> GetByDocumentoAsync(string documento)
+        {
+            var conditions = new List<ScanCondition>();
+            var queryConfig = new QueryConfig
+            {
+                IndexName = "Documento-index",
+                ConsistentRead = false
+            };
+
+            var asyncSearch = _context.QueryAsync<Pessoa>(documento, queryConfig);
+            var results = await asyncSearch.GetNextSetAsync();
+
+            return results.FirstOrDefault();
         }
     }
 }

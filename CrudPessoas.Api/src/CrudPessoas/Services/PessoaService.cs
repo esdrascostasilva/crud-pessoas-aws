@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using CrudPessoas.Exceptions;
 using CrudPessoas.Models;
 using CrudPessoas.Repositories;
 
@@ -7,11 +8,11 @@ namespace CrudPessoas.Services
 {
     public class PessoaService
     {
-        private readonly PessoaRepository _repo = new();
+        private readonly PessoaRepository _repository = new();
 
-        public Task<IEnumerable<Pessoa>> GetAllAsync() => _repo.GetAllAsync();
+        public Task<IEnumerable<Pessoa>> GetAllAsync() => _repository.GetAllAsync();
 
-        public Task<Pessoa?> GetByIdAsync(string id) => _repo.GetByIdAsync(id);
+        public Task<Pessoa?> GetByIdAsync(string id) => _repository.GetByIdAsync(id);
 
         public async Task<Pessoa> CreateAsync(Pessoa pessoa)
         {
@@ -20,36 +21,45 @@ namespace CrudPessoas.Services
             if (!DocumentoValido(pessoa.Documento))
             {
                 Console.WriteLine("[CreateAsync] Documento inválido detectado");
-                throw new Exception("Documento inválido");
+                throw new DocumentoInvalidoException(pessoa.Documento);;
             }
+
+            var alreadyDocumentExist = await _repository.GetByDocumentoAsync(pessoa.Documento);
+
+            if (alreadyDocumentExist != null)
+                throw new DocumentoDuplicadoException(pessoa.Documento);
 
             pessoa = await PreencherEnderecoAsync(pessoa);
 
-            await _repo.AddAsync(pessoa);
+            await _repository.AddAsync(pessoa);
             Console.WriteLine("[CreateAsync] Pessoa adicionada com sucesso");
             return pessoa;
         }
 
         public async Task<Pessoa?> UpdateAsync(Pessoa pessoa)
         {
-            var existing = await _repo.GetByIdAsync(pessoa.Id);
+            var existing = await _repository.GetByIdAsync(pessoa.Id);
             if (existing == null) return null;
 
             if (!DocumentoValido(pessoa.Documento))
-                throw new Exception("Documento inválido");
+                throw new DocumentoInvalidoException(pessoa.Documento);
+
+            var alreadyDocumentExist = await _repository.GetByDocumentoAsync(pessoa.Documento);
+            if (alreadyDocumentExist != null && alreadyDocumentExist.Id != pessoa.Id)
+                throw new DocumentoDuplicadoException(pessoa.Documento);
 
             pessoa = await PreencherEnderecoAsync(pessoa);
 
-            await _repo.UpdateAsync(pessoa);
+            await _repository.UpdateAsync(pessoa);
             return pessoa;
         }
 
         public async Task<bool> DeleteAsync(string id)
         {
-            var existing = await _repo.GetByIdAsync(id);
+            var existing = await _repository.GetByIdAsync(id);
             if (existing == null) return false;
 
-            await _repo.DeleteAsync(id);
+            await _repository.DeleteAsync(id);
             return true;
         }
 
@@ -62,21 +72,21 @@ namespace CrudPessoas.Services
             var response = await client.GetAsync($"https://viacep.com.br/ws/{pessoa.Cep}/json/");
 
             if (!response.IsSuccessStatusCode)
-                throw new Exception("CEP invalido ou nao encontrado");
+                throw new CepIncorretoException(pessoa.Cep);
 
             //testando o retorno da API
             var conteudoViaCep = await response.Content.ReadAsStringAsync();
-            Console.WriteLine($"Conteudo do retorno do ViaCep {conteudoViaCep}"); // veja exatamente o que está vindo do ViaCEP
+            Console.WriteLine($"Conteudo do retorno do ViaCep {conteudoViaCep}");
 
             var endereco = JsonSerializer.Deserialize<ViaCepResponse>(
                 conteudoViaCep,
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
             if (endereco == null)
-                throw new Exception("Endereco retornou vazio. Algum problema com o CEP informado");
+                throw new CepIncorretoException(pessoa.Cep);
 
             if (endereco.Erro)
-                throw new Exception("CEP invalido");
+                throw new CepIncorretoException(pessoa.Cep);
 
             if (!string.IsNullOrWhiteSpace(endereco.Logradouro))
                 {
