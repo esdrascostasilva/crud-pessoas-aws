@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.Core;
+using CrudPessoas.Exceptions;
 using CrudPessoas.Models;
 using CrudPessoas.Services;
 
@@ -95,12 +96,36 @@ public class PessoaHandler
                 Body = JsonSerializer.Serialize(pessoaCriada)
             };
         }
+        catch (DocumentoDuplicadoException ex)
+        {
+            return new APIGatewayProxyResponse
+            {
+                StatusCode = 409, // conflito
+                Body = ex.Message
+            };
+        }
+        catch (DocumentoInvalidoException ex)
+        {
+            return new APIGatewayProxyResponse
+            {
+                StatusCode = 400, // badRequest
+                Body = ex.Message
+            };
+        }
+        catch (CepIncorretoException ex)
+        {
+            return new APIGatewayProxyResponse
+            {
+                StatusCode = 422, // unprocessable
+                Body = ex.Message
+            };
+        }
         catch (Exception ex)
         {
             return new APIGatewayProxyResponse
             {
-                StatusCode = 400,
-                Body = ex.Message
+                StatusCode = 500,
+                Body = "Ocorreu um erro inesperado: " + ex.Message
             };
         }
     }
@@ -120,12 +145,36 @@ public class PessoaHandler
                 Body = JsonSerializer.Serialize(pessoaAtualizada)
             };
         }
+        catch (DocumentoDuplicadoException ex)
+        {
+            return new APIGatewayProxyResponse
+            {
+                StatusCode = 409, // conflito
+                Body = ex.Message
+            };
+        }
+        catch (DocumentoInvalidoException ex)
+        {
+            return new APIGatewayProxyResponse
+            {
+                StatusCode = 400, // badRequest
+                Body = ex.Message
+            };
+        }
+        catch (CepIncorretoException ex)
+        {
+            return new APIGatewayProxyResponse
+            {
+                StatusCode = 422, // unprocessable
+                Body = ex.Message
+            };
+        }
         catch (Exception ex)
         {
             return new APIGatewayProxyResponse
             {
-                StatusCode = 400,
-                Body = ex.Message
+                StatusCode = 500,
+                Body = "Ocorreu um erro inesperado: " + ex.Message
             };
         }
     }
