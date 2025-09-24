@@ -21,10 +21,20 @@ Resources:
       AttributeDefinitions:
         - AttributeName: Id
           AttributeType: S
+        - AttributeName: Documento
+          AttributeType: S
       KeySchema:
         - AttributeName: Id
           KeyType: HASH
       BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: DocumentoIndex
+          KeySchema:
+            - AttributeName: Documento
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+            
 
   # Lambda Function
   CrudPessoasFunction:
