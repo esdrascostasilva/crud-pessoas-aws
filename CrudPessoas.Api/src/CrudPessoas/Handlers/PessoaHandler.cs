@@ -132,7 +132,14 @@ public class PessoaHandler
 
     private async Task<APIGatewayProxyResponse> UpdateAsync(APIGatewayProxyRequest request, ILambdaContext context)
     {
+        if (!request.PathParameters.TryGetValue("id", out var id) || string.IsNullOrWhiteSpace(id))
+            return new APIGatewayProxyResponse { StatusCode = 400, Body = "Id inválido" };
+
         var pessoa = JsonSerializer.Deserialize<Pessoa>(request.Body ?? "");
+
+        if (pessoa != null)
+            pessoa.Id = id;
+            
         try
         {
             var pessoaAtualizada = await _service.UpdateAsync(pessoa);
