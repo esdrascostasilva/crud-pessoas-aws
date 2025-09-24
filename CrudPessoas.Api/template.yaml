@@ -65,7 +65,7 @@ Resources:
         UpdatePessoa:
           Type: Api
           Properties:
-            Path: /pessoas
+            Path: /pessoas/{id}
             Method: put
         DeletePessoa:
           Type: Api
