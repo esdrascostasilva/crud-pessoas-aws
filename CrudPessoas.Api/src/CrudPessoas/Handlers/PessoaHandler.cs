@@ -19,6 +19,9 @@ public class PessoaHandler
 
     public async Task<APIGatewayProxyResponse> FunctionHandler(APIGatewayProxyRequest request, ILambdaContext context)
     {
+        Console.WriteLine($"Método: {request.HttpMethod}, Path: {request.Path}");
+        Console.WriteLine("entrou no metodo FunctionHandler");
+
         switch (request.HttpMethod.ToUpper())
         {
             case "GET":
@@ -31,8 +34,9 @@ public class PessoaHandler
                 break;
 
             case "POST":
-                if (request.Path == "/pessoas")
+                if (request.Path.EndsWith("/pessoas", StringComparison.OrdinalIgnoreCase))
                     return await CreateAsync(request, context);
+
                 break;
 
             case "PUT":
